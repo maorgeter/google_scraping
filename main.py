@@ -55,26 +55,25 @@ try:
     )
     search_box.send_keys(prompt)
     search_box.send_keys(Keys.RETURN)
-    driver.find_element(By.TAG_NAME, "body").send_keys(Keys.HOME)
-    time.sleep(2)
-    driver.find_element(By.XPATH, f"//div[contains(@jsname, 'dTDiAc')]").click()
-    time.sleep(2)
-    thumbnails = driver.find_elements(By.XPATH, f"//div[contains(@jsname, 'dTDiAc')]")
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//div[contains(@jsname, 'dTDiAc')]"))
+    )
+    old_thumbnail = driver.find_element(By.XPATH, f"//div[contains(@jsname, 'dTDiAc')]")
+    old_thumbnail.click()
+    time.sleep(1)
     counter = 0
     index = 0
-    while counter < how_many and index < len(thumbnails):
+    while counter < how_many:
         try:
-            thumbnail = thumbnails[index]
-            thumbnail.click()
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, "//g-snackbar/following-sibling::div//img"))
             )
             img_src = driver.find_element(By.XPATH, "//g-snackbar/following-sibling::div//img").get_attribute("src")
             start_time = time.time()
             while not img_src.endswith(valid_formats):
-                if time.time() - start_time > 4:
+                if time.time() - start_time > 2:
                     print("Timeout reached, continuing without valid image.")
-                    break  # Exit the loop if 4 seconds have passed
+                    break
                 try:
                     if int(time.time() - start_time) % 2 == 0:
                         img_src = driver.find_element(By.XPATH, "//g-snackbar/following-sibling::div//img").get_attribute(
@@ -85,16 +84,20 @@ try:
                             "src")
                 except:
                     pass
-            if img_src and "http" in img_src:
+
+            if img_src and "http" in img_src and img_src.endswith(valid_formats):
                 download_image(img_src, download_dir, f"{prompt}_{counter + 1}.jpg")
-                counter += 1  # Increment only if image is successfully downloaded
-            driver.execute_script("arguments[0].scrollIntoView();", thumbnails[index + 2])
+                counter += 1
+                img_src = ""
+
+            new_thumbnail = old_thumbnail.find_element(By.XPATH, "following-sibling::div[contains(@jsname, 'dTDiAc')]")
+            driver.execute_script("arguments[0].scrollIntoView();", new_thumbnail)
+            new_thumbnail.click()
+            old_thumbnail = new_thumbnail
 
         except Exception as e:
             print(f"Error with image {index + 1}")
         finally:
-            index += 1  # Move to the next thumbnail
-
-
+            index += 1
 finally:
     driver.quit()
