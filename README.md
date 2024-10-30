@@ -8,12 +8,12 @@
 ```
 
 ## Usage:
-Headless - black subaru 10 phtos example:
+Headless - black subaru 10 photos example:
 ```bash
   python3 main.py --how_many 10 --prompt "black subaru"
 ```
 
-Regular - black subaru 10 phtos example:
+Regular - black subaru 10 photos example:
 ```bash
   python3 main.py --how_many 10 --prompt "black subaru" --hard
 ```
